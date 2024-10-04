@@ -1,4 +1,4 @@
-# Oscillating Tree
+# Lighttree
 
 ![screenshot](images/0000.png)
-<p>Waveart 3D visualization based on the fire train sample in panda3d<p>
+<p>3D visualization based on the fire train sample in panda3d<p>
