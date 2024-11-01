@@ -11,7 +11,7 @@ from direct.interval.LerpInterval import LerpTexOffsetInterval
 from direct.interval.IntervalGlobal import Sequence
 from direct.task.TaskManagerGlobal import taskMgr
 
-class OscillatingTree(ShowBase):
+class Lights(ShowBase):
     spheres = 15
     radius = 0
     h = 0
@@ -121,5 +121,5 @@ class OscillatingTree(ShowBase):
         return task.again
 
 if "__main__" == __name__:
-    ot = OscillatingTree()
+    ot = Lights()
     ot.run()
