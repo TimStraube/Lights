@@ -2,9 +2,7 @@
 
 Program to create dancing lights based on the fire train sample in panda3d.
 
-![screenshot](images/0000.png)
-
 <div style="text-align: center;">
-  <img src="images/0000.png" alt="Screenshot of 3D visualization">
-  <p style="text-align: center;">Description of the image goes here</p>
+    <img src="images/0000.png" alt="Screenshot of 3D visualization">
+    <p style="text-align: center;">Screenshot of the panda3d graphical interface</p>
 </div>
