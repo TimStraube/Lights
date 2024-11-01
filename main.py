@@ -22,7 +22,6 @@ class Lights(ShowBase):
 
         self.set_background_color(0.0, 0.0, 0.0, 1)
         self.cam.set_pos(0, -120, 0)
-        # self.cam.look_at(render)
 
         flame_colors = (
             Vec4(1.0, 0.0, 0.0, 1),
@@ -37,73 +36,86 @@ class Lights(ShowBase):
         self.charcoal = [None] * self.spheres
         fire_trail = [None] * self.spheres
 
-        for kk in range(self.spheres):
-            pivot[kk] = render.attach_new_node("pivot")
-            pivot[kk].hprInterval(6 + kk, (360, 0, 0)).loop()
+        for sphere in range(self.spheres):
+            pivot[sphere] = render.attach_new_node("pivot")
+            pivot[sphere].hprInterval(6 + sphere, (360, 0, 0)).loop()
             Sequence( 
                 LerpPosInterval(
-                    pivot[kk], 
-                    2 - kk / 30, 
+                    pivot[sphere], 
+                    2 - sphere / 30, 
                     (0, 0,-2), 
                     (0, 0, 1), 
                     blendType="easeInOut"),
                 LerpPosInterval(
-                    pivot[kk], 
-                    2 - kk / 30, 
+                    pivot[sphere], 
+                    2 - sphere / 30, 
                     (0, 0, 1), 
                     (0, 0, -2), 
                     blendType="easeInOut")
             ).loop()
 
-            self.charcoal[kk] = loader.load_model("models/smiley").copy_to(
-                pivot[kk])
-            self.charcoal[kk].set_texture(loader.load_texture(
-                "models/plasma.png"), 
-                1)
-            self.charcoal[kk].set_color(flame_colors[0] * 0)
-            self.charcoal[kk].set_x(self.radius)
+            self.charcoal[sphere] = loader.load_model("models/smiley").copy_to(
+                pivot[sphere]
+            )
+            self.charcoal[sphere].set_texture(
+                loader.load_texture(
+                    "static/plasma.png"
+                ), 
+                1
+            )
+            self.charcoal[sphere].set_color(flame_colors[0] * 0)
+            self.charcoal[sphere].set_x(self.radius)
 
-            fire_trail[kk] = MotionTrail("fire trail", self.charcoal[kk])
-            fire_trail[kk].register_motion_trail()
-            fire_trail[kk].geom_node_path.reparent_to(render)
-            fire_trail[kk].set_texture(loader.load_texture("models/plasma.png"))
-            fire_trail[kk].time_window = 5 + 3 * kk 
+            fire_trail[sphere] = MotionTrail("fire trail", self.charcoal[sphere])
+            fire_trail[sphere].register_motion_trail()
+            fire_trail[sphere].geom_node_path.reparent_to(render)
+            fire_trail[sphere].set_texture(loader.load_texture("static/plasma.png"))
+            fire_trail[sphere].time_window = 5 + 3 * sphere 
 
             center = render.attach_new_node("center")
             around = center.attach_new_node("around")
             around.set_z(1)
-            res = 8 # Amount of angles in "circle". Higher is smoother.
+            # Amount of angles in "circle". Higher is smoother.
+            res = 8
             for ii in range(res + 1):
                 center.set_r((360 / res) * ii)
                 vertex_pos = around.get_pos(render)
-                fire_trail[kk].add_vertex(vertex_pos)
+                fire_trail[sphere].add_vertex(vertex_pos)
 
                 start_color = (flame_colors[ii % len(flame_colors)] * 
-                    (math.sin(kk) + 1.3))
-                end_color = Vec4(1, kk / self.spheres, 1 - kk / self.spheres, 1)
-                fire_trail[kk].set_vertex_color(ii, start_color, end_color)
+                    (math.sin(sphere) + 1.3))
+                end_color = Vec4(
+                    1, 
+                    sphere / self.spheres, 
+                    1 - sphere / self.spheres, 
+                    1
+                )
+                fire_trail[sphere].set_vertex_color(ii, start_color, end_color)
 
-            fire_trail[kk].update_vertices()
+            fire_trail[sphere].update_vertices()
 
-            LerpHprInterval(fire_trail[kk], 16, (0, 0, -360)).loop()
+            LerpHprInterval(fire_trail[sphere], 16, (0, 0, -360)).loop()
             LerpTexOffsetInterval(
-                fire_trail[kk].geom_node_path, 
+                fire_trail[sphere].geom_node_path, 
                 60, 
                 (1, 1), 
-                (1, 0)).loop()
+                (1, 0)
+            ).loop()
             Sequence(
                 LerpScaleInterval(
-                    fire_trail[kk], 
+                    fire_trail[sphere], 
                     0.3, 
                     1.4, 
                     0.4, 
-                    blendType="easeInOut"),
+                    blendType="easeInOut"
+                ),
                 LerpScaleInterval(
-                    fire_trail[kk], 
+                    fire_trail[sphere], 
                     0.2, 
                     0.5, 
                     1.4,
-                    blendType="easeInOut")
+                    blendType="easeInOut"
+                )
             ).loop()
 
         self.run()
