@@ -10,6 +10,11 @@ from direct.interval.LerpInterval import LerpScaleInterval
 from direct.interval.LerpInterval import LerpTexOffsetInterval
 from direct.interval.IntervalGlobal import Sequence
 from direct.task.TaskManagerGlobal import taskMgr
+import os
+from panda3d.core import PNMImage, Filename
+import subprocess
+import shutil
+import uuid
 
 class Lights(ShowBase):
     spheres = 15
@@ -75,7 +80,6 @@ class Lights(ShowBase):
             center = render.attach_new_node("center")
             around = center.attach_new_node("around")
             around.set_z(1)
-            # Amount of angles in "circle". Higher is smoother.
             res = 8
             for ii in range(res + 1):
                 center.set_r((360 / res) * ii)
@@ -118,7 +122,34 @@ class Lights(ShowBase):
                 )
             ).loop()
 
+        self.frame_count = 0
+        self.output_dir = "frames"
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+        
+        self.taskMgr.add(self.captureFrame, "CaptureFrame")
+
         self.run()
+
+    def captureFrame(self, task):
+        """Erfasst jeden Frame und speichert ihn als Bild"""
+        filename = os.path.join(self.output_dir, f"frame_{self.frame_count:04d}.png")
+        self.win.saveScreenshot(Filename(filename))
+        self.frame_count += 1
+        
+        # Prüfe die Frame-Anzahl und erstelle Video, wenn genug Frames vorhanden sind
+        if self.frame_count >= 100:  # Passe diese Zahl nach Bedarf an
+            print(f"Erstelle Video...")
+            self.taskMgr.doMethodLater(1.0, self.createVideoTask, "CreateVideoTask")
+            # Deaktiviere weiteres Aufnehmen von Frames
+            return task.done
+        
+        return task.cont
+
+    def createVideoTask(self, task):
+        """Task-Wrapper für die Videoerstellung"""
+        self.createVideo()
+        return task.done
 
     def updateParameter(self, task):
         self.c += 0.01
@@ -130,7 +161,40 @@ class Lights(ShowBase):
             if self.c > 12.56:
                 self.h = self.c ** 2
             self.charcoal[k].set_z(self.h)
+            
+        # Entferne die Frame-Überprüfung hier, da sie bereits in captureFrame geschieht
         return task.again
+
+    def createVideo(self):
+        """Erstellt ein Video aus den gespeicherten Frames"""
+        print(f"Erstelle Video aus {self.frame_count} Frames...")
+        # Zähle tatsächlich vorhandene PNG-Dateien im Verzeichnis
+        png_files = [f for f in os.listdir(self.output_dir) if f.endswith('.png')]
+        print(f"Gefundene PNG-Dateien: {len(png_files)}")
+        
+        cmd = [
+            'ffmpeg',
+            '-framerate', '30',
+            '-i', f'{self.output_dir}/frame_%04d.png',
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            'output_video.mp4'
+        ]
+        
+        try:
+            subprocess.run(cmd, check=True)
+            print("Video wurde erfolgreich erstellt: output_video.mp4")
+            videos_dir = "videos"
+            if not os.path.exists(videos_dir):
+                os.makedirs(videos_dir)
+
+            unique_video_name = f"video_{uuid.uuid4().hex}.mp4"
+            shutil.move("output_video.mp4", os.path.join(videos_dir, unique_video_name))
+            print(f"Video copied as {os.path.join(videos_dir, unique_video_name)}")
+            # Optional: Beende die Anwendung nach Videoerstellung
+            # self.userExit()
+        except subprocess.CalledProcessError as e:
+            print(f"Fehler bei der Videoerstellung: {e}")
 
 if "__main__" == __name__:
     ot = Lights()

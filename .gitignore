@@ -156,3 +156,7 @@ cython_debug/
 
 # Exclude speech models
 speech/
+
+# Bilder
+*.png
+*.jpg
